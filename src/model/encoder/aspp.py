@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 
 
@@ -25,7 +26,17 @@ class ASPPModule(nn.Module):
         self.dilations = nn.ModuleDict(dilation_dict)
         self.avg_conv = DilationModule(in_channels, out_channels, kernel_size=1)
         self.avg_conv2 = DilationModule(4*out_channels, out_channels, kernel_size=1)
-        self.output_conv = nn.Conv2d(out_channels, final_classes, kernel_size=1)
+        self.output_conv_logits = nn.Conv2d(out_channels, final_classes, kernel_size=1)
 
     def forward(self, input_tensor):
-        pass
+        final_tensor = None
+        for rate_conv in self.dilations.keys():
+            dil_rate_tensor = self.dilations[rate_conv](input_tensor)
+            final_tensor = torch.cat((final_tensor, dil_rate_tensor), dim=1)
+
+        avg_pooling = nn.AvgPool2d(input_tensor.size()[-2:])(input_tensor)
+        avg_pooling = self.avg_conv(avg_pooling)
+        avg_pooling = nn.functional.interpolate(avg_pooling, input_tensor.size()[-2:], mode='bilinear')
+        final_tensor = torch.cat((final_tensor, avg_pooling), dim=1)
+        final_tensor = self.avg_conv2(final_tensor)
+        return self.output_conv_logits(final_tensor)
