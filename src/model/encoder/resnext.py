@@ -6,7 +6,7 @@ class SeparableConv2d(nn.Module):
         super().__init__()
         self.depthwise = nn.Conv2d(in_channels, in_channels, kernel, stride, padding,
                                    dilation=dilation, groups=in_channels, bias=bias)
-        self.pointwise = nn.Conv2d(in_channels, out_channels, kernel=1, stride=1, padding=0,
+        self.pointwise = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=1, padding=0,
                                    dilation=1, groups=1, bias=bias)
 
         self.bn = nn.BatchNorm2d(in_channels)
@@ -32,7 +32,7 @@ class BuildingBlock(nn.Module):
         self.sepConv3 = SeparableConv2d(out_channels[1], out_channels[2], kernel=kernel, stride=2)
         self.bn3 = nn.BatchNorm2d(out_channels[2])
         self.relu = nn.ReLU()
-        self.skip_connection = nn.Conv2d(in_channels, out_channels[3], kernel=1, stride=2)
+        self.skip_connection = nn.Conv2d(in_channels, out_channels[3], kernel_size=1, stride=2)
 
     def forward(self, input_batch):
         skip_connection = self.skip_connection(input_batch)
