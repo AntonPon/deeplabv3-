@@ -20,17 +20,22 @@ class SeparableConv2d(nn.Module):
 
 
 class BuildingBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel=3):
+    def __init__(self, in_channels, out_channels=(128, 128, 128, 128), kernel=3):
         super().__init__()
-        self.sepConv1 = SeparableConv2d(in_channels, out_channels, kernel=kernel)
-        self.bn1 = nn.BatchNorm2d(out_channels)
-        self.sepConv2 = SeparableConv2d(out_channels, out_channels, kernel=kernel)
-        self.bn2 = nn.BatchNorm2d(out_channels)
-        self.sepConv3 = SeparableConv2d(out_channels, out_channels, kernel=kernel, stride=2)
-        self.bn3 = nn.BatchNorm2d(out_channels)
+        if len(out_channels) != 4:
+            raise ValueError('the number of output channels != 4')
+
+        self.sepConv1 = SeparableConv2d(in_channels, out_channels[0], kernel=kernel)
+        self.bn1 = nn.BatchNorm2d(out_channels[0])
+        self.sepConv2 = SeparableConv2d(out_channels[0], out_channels[1], kernel=kernel)
+        self.bn2 = nn.BatchNorm2d(out_channels[1])
+        self.sepConv3 = SeparableConv2d(out_channels[1], out_channels[2], kernel=kernel, stride=2)
+        self.bn3 = nn.BatchNorm2d(out_channels[2])
         self.relu = nn.ReLU()
+        self.skip_connection = nn.Conv2d(in_channels, out_channels[3], kernel=1, stride=2)
 
     def forward(self, input_batch):
+        skip_connection = self.skip_connection(input_batch)
         input_batch = self.sepConv1(input_batch)
         input_batch = self.bn1(input_batch)
         input_batch = self.relu(input_batch)
@@ -41,7 +46,7 @@ class BuildingBlock(nn.Module):
 
         input_batch = self.sepConv3(input_batch)
         input_batch = self.bn3(input_batch)
-        return self.relu(input_batch)
+        return self.relu(input_batch) + skip_connection
 
 
 class EntryFlow(nn.Module):
