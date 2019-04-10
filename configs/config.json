@@ -1,0 +1,21 @@
+
+
+
+
+{
+  "epochs": 20,
+  "cuda_usage": false,
+  "img_size": [728, 728],
+  "batch_size": 3,
+  "workers_num": 4,
+  "learning_rate": 1e-5,
+  "learning_rate_step": 30,
+  "path_to_data": "data_path",
+  "path_to_load_model": null,
+  "train_model": true
+}
+
+
+
+
+
