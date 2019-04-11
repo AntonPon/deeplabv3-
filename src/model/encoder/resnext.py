@@ -59,9 +59,9 @@ class EntryFlow(nn.Module):
         input_batch = self.conv_module2(input_batch)
         input_batch = self.relu(input_batch)
         input_batch = self.conv_block1(input_batch)
-        input_batch = self.conv_block2(input_batch)
+        interm_batch = self.conv_block2(input_batch)
         input_batch = self.conv_block3(input_batch)
-        return input_batch
+        return {'final': input_batch, 'interm_batch': interm_batch}
 
 class MiddleFlow(nn.Module):
     def __init__(self, in_channels=728, total_blocks=16):
@@ -100,5 +100,8 @@ class AdaptedXception(nn.Module):
 
     def forward(self, input_batch):
         result = self.entry(input_batch)
+        interm_btach = result['interm_batch']
+        result = result['final']
         result = self.middle(result)
-        return self.exit(result)
+        result = self.exit(result)
+        return {'final': result, 'interm_batch': interm_btach}
