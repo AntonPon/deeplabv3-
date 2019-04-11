@@ -1,42 +1,52 @@
 import torch
+import tqdm
 
-def train(model, data_loader, epoch, optimizer, loss_fucntion,  metric, board_writer=None, scheduler=None, device='cpu'):
+def train(model, data_loader, epoch, optimizer, criterion, metric, board_writer=None, scheduler=None, device='cpu'):
     train_loss = 0.
     train_miou = 0.
+    scalars_dict = {'train/loss': 0, 'train/miou': 0}
+    data_len = len(data_loader)
     for idx, input_batch in enumerate(data_loader):
         img_batch = input_batch['imgs'].to(device)
         masks_batch = input_batch['masks'].to(device)
 
-        output_masks = model(img_batch)
-        loss = loss_fucntion(masks_batch, output_masks)
-
         optimizer.zero_grad()
+        output_masks = model(img_batch)
+        loss = criterion(masks_batch, output_masks)
+
         loss.backward()
         optimizer.step()
 
         train_loss += loss.item()
         train_miou += metric(masks_batch, output_masks).item()
     if board_writer is not None:
-        board_writer.add_scalar('train/loss', train_loss / len(data_loader), epoch)
-        board_writer.add_scalar('train/miou', train_miou / len(data_loader), epoch)
+        scalars_dict['train/loss'] = train_loss / data_len
+        scalars_dict['train/miou'] = train_miou / data_len
+        log_scalars(board_writer, scalars_dict, epoch)
 
 
-def val(model, loss_func, metric, data_loader, epoch, board_writer, device='cpu'):
+def val(model, criterion, metric, data_loader, epoch, board_writer, device='cpu'):
     with torch.no_grad():
         val_loss = 0.
         val_miou = 0.
+        scalars_dict = {'val/loss': 0, 'val/miou': 0}
+        data_len = len(data_loader)
         for idx, input_batch in enumerate(data_loader):
             img_batch = input_batch['imgs'].to(device)
             masks_batch = input_batch['masks'].to(device)
 
             output_masks = model(img_batch)
 
-            loss = loss_func(masks_batch, output_masks).item()
+            loss = criterion(masks_batch, output_masks).item()
             val_loss += loss
             miou = metric(masks_batch, output_masks).item()
             val_miou += miou
         if board_writer is not None:
-            board_writer.add_scalar('val/loss', val_loss/len(data_loader), epoch)
-            board_writer.add_scalar('val/miou', val_miou/len(data_loader, epoch))
+            scalars_dict['val/loss'] = val_loss/data_len
+            scalars_dict['val/miou'] = val_miou/data_len
+            log_scalars(board_writer, scalars_dict, epoch)
 
 
+def log_scalars(board_writer, scalars_dict, epoch):
+    for key in scalars_dict.keys():
+        board_writer.add_scalar(key, scalars_dict[key], epoch)
