@@ -1,12 +1,14 @@
 import torch
-import tqdm
+from tqdm import tqdm
+
 
 def train(model, data_loader, epoch, optimizer, criterion, metric, board_writer=None, scheduler=None, device='cpu'):
     train_loss = 0.
     train_miou = 0.
     scalars_dict = {'train/loss': 0, 'train/miou': 0}
     data_len = len(data_loader)
-    for idx, input_batch in enumerate(data_loader):
+    pbar = tqdm(enumerate(data_loader), data_len, desc='epoch: {} train'.format(epoch))
+    for idx, input_batch in pbar:
         img_batch = input_batch['imgs'].to(device)
         masks_batch = input_batch['masks'].to(device)
 
@@ -31,7 +33,8 @@ def val(model, criterion, metric, data_loader, epoch, board_writer, device='cpu'
         val_miou = 0.
         scalars_dict = {'val/loss': 0, 'val/miou': 0}
         data_len = len(data_loader)
-        for idx, input_batch in enumerate(data_loader):
+        pbar = tqdm(enumerate(data_loader), data_len, desc='poch: {} val'.format(epoch))
+        for idx, input_batch in pbar:
             img_batch = input_batch['imgs'].to(device)
             masks_batch = input_batch['masks'].to(device)
 
