@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from src.model.deeplab_v3plus import DeepLabV3Plus
 from torch import cuda, nn, optim
-import tensorboardX
+from tensorboardX import SummaryWriter
 from tqdm import tqdm
 from  src.train_val import train, val
 
@@ -34,7 +34,6 @@ def main(config_path):
 
     model_configs = load_json(path_to_config)
 
-
     path_to_data = Path(model_configs['path_to_data'])
     train_model = model_configs['train_model']
     workers_num = model_configs['workers_num']
@@ -60,7 +59,7 @@ def main(config_path):
 
     info_paths = model_configs['info_paths']
 
-    writer = tensorboardX.SummaryWriter(log_dir=info_paths['log_dir'])
+    writer = SummaryWriter(log_dir=info_paths['log_dir'])
     total_epochs = model_configs['epochs']
 
     for epoch in range(total_epochs):
