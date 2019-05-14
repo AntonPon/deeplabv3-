@@ -73,7 +73,7 @@ if __name__ == '__main__':
 
     total_sum = 0
     for i in tqdm(range(4)):
-        img = a[i]['mask']
+        image = a[i]['mask']
 
     print(total_sum == len(a))
 

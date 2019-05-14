@@ -4,8 +4,7 @@ from pathlib import Path
 from src.model.deeplab_v3plus import DeepLabV3Plus
 from torch import cuda, nn, optim
 from tensorboardX import SummaryWriter
-from tqdm import tqdm
-from  src.train_val import train, val
+from src.train_val import train, val
 
 
 
